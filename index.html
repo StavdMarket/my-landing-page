@@ -17,6 +17,7 @@
   </style>
 </head>
 <body class="bg-gradient-to-b from-white to-indigo-50 text-slate-900">
+
   <!-- Header -->
   <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
     <div class="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -115,7 +116,7 @@
     </div>
   </section>
 
-  <!-- Signup Form (Netlify-ready) -->
+  <!-- Signup Form -->
   <section id="signup" class="bg-indigo-900 py-16 text-white">
     <div class="container mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
       <div>
@@ -127,8 +128,9 @@
         </ul>
         <a href="https://wa.me/972501234567" target="_blank" class="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 font-semibold">דברו איתנו בוואטסאפ</a>
       </div>
-      <form name="signup" method="POST" data-netlify="true" class="bg-white/10 backdrop-blur p-6 rounded-3xl shadow-soft">
-        <input type="hidden" name="form-name" value="signup">
+
+      <!-- הטופס עם חיבור ל-Supabase -->
+      <form id="signupForm" class="bg-white/10 backdrop-blur p-6 rounded-3xl shadow-soft">
         <div class="grid grid-cols-1 gap-4">
           <label class="text-sm">שם מלא
             <input required name="name" class="mt-1 w-full rounded-xl border-0 px-4 py-3 text-slate-900" placeholder="שם ושם משפחה" />
@@ -142,48 +144,50 @@
           <label class="text-sm">הערות
             <textarea name="note" rows="3" class="mt-1 w-full rounded-xl border-0 px-4 py-3 text-slate-900" placeholder="שאלות/בקשות מיוחדות"></textarea>
           </label>
-          <button class="mt-2 px-6 py-3 rounded-2xl bg-white text-indigo-700 font-semibold hover:bg-indigo-50">שלח/י הרשמה</button>
-          <a href="mailto:you@example.com?subject=%D7%94%D7%A8%D7%A9%D7%9E%D7%94%20%D7%9C%D7%9E%D7%A2%D7%92%D7%9C%20%D7%A9%D7%99%D7%A8%D7%94" class="text-xs underline text-indigo-200 text-center">או שלחו מייל ידני</a>
+          <button type="submit" class="mt-2 px-6 py-3 rounded-2xl bg-white text-indigo-700 font-semibold hover:bg-indigo-50">שלח/י הרשמה</button>
         </div>
       </form>
     </div>
   </section>
 
-  <!-- FAQ / Footer -->
+  <!-- Footer -->
   <section class="container mx-auto px-4 py-16">
-    <div class="grid md:grid-cols-3 gap-6">
-      <div class="md:col-span-2">
-        <h3 class="text-xl font-extrabold text-indigo-900">שאלות נפוצות</h3>
-        <div class="mt-4 space-y-4">
-          <details class="bg-white rounded-xl p-4 shadow-soft">
-            <summary class="font-semibold cursor-pointer">צריך לדעת לשיר?</summary>
-            <p class="mt-2 text-slate-700">ממש לא. זה מפגש חברתי של שירה ביחד. כולם מתקבלים יפה.</p>
-          </details>
-          <details class="bg-white rounded-xl p-4 shadow-soft">
-            <summary class="font-semibold cursor-pointer">מה להביא?</summary>
-            <p class="mt-2 text-slate-700">בקבוק מים, לב פתוח. כלי נגינה קלים – בשמחה!</p>
-          </details>
-          <details class="bg-white rounded-xl p-4 shadow-soft">
-            <summary class="font-semibold cursor-pointer">האם יש החזרות?</summary>
-            <p class="mt-2 text-slate-700">ביטול עד 24 שעות מראש ללא חיוב. לאחר מכן לפי מדיניות המארגנים.</p>
-          </details>
-        </div>
-      </div>
-      <aside class="bg-white rounded-2xl p-6 shadow-soft">
-        <h4 class="font-bold text-indigo-900">פרטי קשר</h4>
-        <p class="mt-2 text-slate-700 text-sm leading-7">
-          טלפון/וואטסאפ: <a class="underline" href="https://wa.me/972524541557" target="_blank">052-4541557</a><br>
-          אימייל: <a class="underline" href="mailto:you@example.com">you@example.com</a><br>
-          אינסטגרם: <a class="underline" href="#">@singing.circle</a>
-        </p>
-      </aside>
-    </div>
     <footer class="pt-10 text-center text-xs text-slate-500">© <span id="y"></span> מעגלי שירה — באהבה לקהילה</footer>
   </section>
 
   <script>
-    // שנה דינמית
     document.getElementById('y').textContent = new Date().getFullYear()
+  </script>
+
+  <!-- Supabase JS -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    const supabaseUrl = 'YOUR_SUPABASE_URL'
+    const supabaseKey = 'YOUR_ANON_KEY'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    const form = document.getElementById('signupForm')
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const formData = new FormData(form)
+
+      const { data, error } = await supabase
+        .from('registrations')
+        .insert([{
+          name: formData.get('name'),
+          phone: formData.get('phone'),
+          email: formData.get('email'),
+          note: formData.get('note')
+        }])
+
+      if(error) {
+        alert('שגיאה בשליחה: ' + error.message)
+      } else {
+        alert('ההרשמה נשלחה בהצלחה!')
+        form.reset()
+      }
+    })
   </script>
 </body>
 </html>
